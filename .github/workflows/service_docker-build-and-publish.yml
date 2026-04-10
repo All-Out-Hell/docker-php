@@ -35,6 +35,9 @@ on:
 jobs:
   setup-matrix:
     runs-on: ubuntu-24.04
+    permissions:
+      contents: read
+      packages: write
     outputs:
       php-version-map-json: ${{ steps.get-php-versions.outputs.php-version-map-json }}
     steps:
