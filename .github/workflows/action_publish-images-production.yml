@@ -20,6 +20,9 @@ jobs:
           echo "release_tag=${LATEST_TAG}" >> $GITHUB_OUTPUT
 
   build-production-images:
+    permissions:
+      contents: read
+      packages: write
     needs: get-latest-release
     uses: ./.github/workflows/service_docker-build-and-publish.yml
     with:
