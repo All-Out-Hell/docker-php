@@ -23,6 +23,7 @@ jobs:
     permissions:
       contents: read
       packages: write
+      id-token: write
     needs: get-latest-release
     uses: ./.github/workflows/service_docker-build-and-publish.yml
     with:
