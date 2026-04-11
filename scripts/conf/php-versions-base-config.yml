@@ -51,19 +51,6 @@ php_variations:
 php_versions:
   - major: "8"
     minor_versions:
-      # PHP 8.1 is end of life, so php.net no longer lists it in the active releases feed
-      # and the patch version must be pinned here. docker-library/php removed 8.1 from master,
-      # so it builds from the last commit that had it ("Update 8.1 to 8.1.34"). Debian Bookworm,
-      # Trixie, and Alpine 3.22 still receive security updates, so weekly rebuilds keep
-      # delivering OS patches.
-      - minor: "8.1"
-        docker_library_ref: 5c037abaf9dc0095e29807c048d9d1b97e6a9716
-        base_os:
-          - name: alpine3.22
-          - name: bookworm
-          - name: trixie
-        patch_versions:
-          - 8.1.34
       - minor: "8.2"
         base_os:
           - name: alpine3.23
