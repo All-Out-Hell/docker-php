@@ -8,6 +8,9 @@ php_variations:
       - trixie
   - name: fpm-nginx
   - name: frankenphp
+    supported_os: # Frankenphp is documented as not working well on Alpine
+      - bookworm
+      - trixie
     excluded_minor_versions:
       - "7.4"
       - "8.0"
