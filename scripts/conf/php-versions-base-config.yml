@@ -44,6 +44,9 @@ php_variations:
     php_base: fpm
   - name: frankenphp
     php_base: zts
+    supported_os: # Frankenphp is documented as not working well on Alpine
+      - bookworm
+      - trixie
     excluded_minor_versions:
       - "8.1"
       - "8.2"
