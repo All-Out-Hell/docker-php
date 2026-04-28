@@ -91,10 +91,33 @@ fd00::/8 \
 	}
 	log_skip @healthcheckpath
 
-	php_server {
-		{$CADDY_PHP_SERVER_OPTIONS}
+	route {
+		# Add trailing slash for directory requests
+		@canonicalPath {
+			file {path}/index.php
+			not path */
+		}
+		redir @canonicalPath {path}/ 308
+
+		# Strip index files when directly accessed
+		# This rule is not included in `php_server` by default, but is useful for AOH
+		@stripIndex {
+			path /index.php
+			file
+		}
+		redir @stripIndex / 308
+
+		# If the requested file does not exist, try index files
+		@indexFiles file {
+			try_files {path} {path}/index.php
+			split_path .php
+		}
+		rewrite @indexFiles {http.matchers.file.relative}
+		# FrankenPHP!
+		@phpFiles path *.php
+		php @phpFiles
+		file_server
 	}
-	file_server
 
 	import performance
 	import security 
