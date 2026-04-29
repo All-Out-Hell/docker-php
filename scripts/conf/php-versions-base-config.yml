@@ -20,29 +20,29 @@ php_variations:
 php_versions:
   - major: "8"
     minor_versions:
-      - minor: "8.2"
-        base_os:
-          - name: alpine3.22
-          - name: alpine3.23
-          - name: bookworm
-          - name: trixie
-        patch_versions:
+      # - minor: "8.2"
+      #   base_os:
+      #     - name: alpine3.22
+      #     - name: alpine3.23
+      #     - name: bookworm
+      #     - name: trixie
+      #   patch_versions:
         #   - 8.2.30 # Pull latest from Official PHP source
-      - minor: "8.3"
-        base_os:
-          - name: alpine3.22
-          - name: alpine3.23
-          - name: bookworm
-          - name: trixie
-        patch_versions:
+      # - minor: "8.3"
+      #   base_os:
+      #     - name: alpine3.22
+      #     - name: alpine3.23
+      #     - name: bookworm
+      #     - name: trixie
+      #   patch_versions:
           # - 8.3.29 # Pull latest from Official PHP source
-      - minor: "8.4"
-        base_os:
-          - name: alpine3.22
-          - name: alpine3.23
-          - name: bookworm
-          - name: trixie
-        patch_versions:
+      # - minor: "8.4"
+      #   base_os:
+      #     - name: alpine3.22
+      #     - name: alpine3.23
+      #     - name: bookworm
+      #     - name: trixie
+      #   patch_versions:
         #   - 8.4.16 # Pull latest from Official PHP source
       - minor: "8.5"
         base_os:
