@@ -107,6 +107,12 @@ fd00::/8 \
 		}
 		redir @stripIndex / 308
 
+		# If the requested file does not exist, try index files
+		@indexFiles file {
+			try_files {path} {path}/index.php
+			split_path .php
+		}
+		rewrite @indexFiles {http.matchers.file.relative}
 		# FrankenPHP!
 		@phpFiles path *.php
 		php @phpFiles
