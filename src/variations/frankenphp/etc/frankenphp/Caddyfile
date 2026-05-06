@@ -111,7 +111,9 @@
 		# FrankenPHP!
 		@phpFiles path *.php
 		php @phpFiles
-		file_server
+		file_server {
+			precompressed br
+		}
 	}
 
 	import performance
