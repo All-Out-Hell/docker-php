@@ -115,7 +115,9 @@ fd00::/8 \
 		rewrite @indexFiles {http.matchers.file.relative}
 		# FrankenPHP!
 		@phpFiles path *.php
-		php @phpFiles
+		php @phpFiles {
+			{$CADDY_PHP_SERVER_OPTIONS}
+		}
 		file_server {
 			precompressed br
 		}
