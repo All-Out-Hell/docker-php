@@ -1,1 +1,8 @@
-# Include nothing when TRUSTED_PROXY is set to off
+# No trusted proxies when TRUSTED_PROXY is set to off, but the server timeouts still apply
+servers {
+	timeouts {
+		read_body   2m
+		read_header 30s
+		write       5m
+	}
+}
