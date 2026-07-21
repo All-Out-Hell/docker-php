@@ -52,6 +52,13 @@ fd00::/8 \
 
 		# Prefer Cloudflare's header; keep XFF as fallback
 		client_ip_headers CF-Connecting-IP X-Forwarded-For
+
+		timeouts {
+			read_body   2m
+			read_header 30s
+			write       5m
+		}
+
 	}
 
 	{$CADDY_GLOBAL_OPTIONS}
