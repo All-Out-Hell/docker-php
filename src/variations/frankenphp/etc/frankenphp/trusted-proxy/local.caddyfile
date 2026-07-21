@@ -11,4 +11,10 @@ fd00::/8
 	# Walk the header right-to-left past trusted proxies instead of taking the first (client-supplied) entry
 	trusted_proxies_strict
 	client_ip_headers X-Forwarded-For
+
+	timeouts {
+		read_body   2m
+		read_header 30s
+		write       5m
+	}
 }
