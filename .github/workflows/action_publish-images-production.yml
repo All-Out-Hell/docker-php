@@ -1,135 +1,34 @@
 name: Docker Publish (Production Images)
-run-name: >-
-  Production images (${{
-    github.event.release.tag_name ||
-    (github.event_name == 'schedule' && 'weekly rebuild') ||
-    inputs.reason ||
-    'manual rebuild'
-  }})
 
 on:
   workflow_dispatch:
-    inputs:
-      reason:
-        description: 'Shown in the run title (example: PHP 8.5.13 release). Left empty, the run is a "manual rebuild".'
-        type: string
-        required: false
   release:
     types: [released]
   schedule:
     - cron: '0 8 * * 2'
 
-# A release event and the weekly rebuild must not publish the same tags at the same time.
-concurrency:
-  group: production-images
-
-permissions: {}
-
 jobs:
-  release:
-    # Forks inherit the cron schedule. Their weekly rebuilds always fail and email whoever last edited the schedule upstream.
-    if: github.event_name != 'schedule' || github.repository == 'serversideup/docker-php'
-    name: resolve release
+  get-latest-release:
     runs-on: ubuntu-24.04
-    timeout-minutes: 5
-    permissions:
-      contents: read
     outputs:
-      tag: ${{ steps.release.outputs.tag }}
+      release_tag: ${{ steps.get_latest_release.outputs.release_tag }}
     steps:
-      # A release event builds the release that fired it. Scheduled and manual runs rebuild the latest release.
-      - name: Find the release to build
-        id: release
-        env:
-          GH_TOKEN: ${{ github.token }}
-          GH_REPO: ${{ github.repository }}
-          RELEASE_TAG: ${{ github.event.release.tag_name }}
+      - name: Get Latest Release
+        id: get_latest_release
         run: |
-          TAG="${RELEASE_TAG:-$(gh release view --json tagName --jq .tagName)}"
-          if [ -z "$TAG" ] || [ "$TAG" = "null" ]; then
-            echo "::error title=No release found::Could not find a published release to build."
-            exit 1
-          fi
-          echo "Building release $TAG"
-          echo "tag=$TAG" >> "$GITHUB_OUTPUT"
+          LATEST_TAG=$(curl -s https://api.github.com/repos/${{ github.repository }}/releases/latest | jq -r .tag_name)
+          echo "release_tag=${LATEST_TAG}" >> $GITHUB_OUTPUT
 
-  setup:
-    needs: release
-    uses: ./.github/workflows/service_setup-matrix.yml
-    permissions:
-      contents: read
-    with:
-      ref: ${{ needs.release.outputs.tag }}
-
-  base:
-    needs: [release, setup]
-    uses: ./.github/workflows/service_build-php-base.yml
-    permissions:
-      contents: read
-      id-token: write
-    with:
-      matrix: ${{ needs.setup.outputs.base-matrix }}
-      ref: ${{ needs.release.outputs.tag }}
-
-  build:
-    needs: [release, setup, base]
-    name: build ${{ matrix.variation }}
-    strategy:
-      fail-fast: false
-      matrix:
-        variation: ${{ fromJson(needs.setup.outputs.variations) }}
-    permissions:
-      contents: read
-      id-token: write
-    uses: ./.github/workflows/service_build-images.yml
-    with:
-      variation: ${{ matrix.variation }}
-      matrix: ${{ needs.setup.outputs.matrix }}
-      ref: ${{ needs.release.outputs.tag }}
-      registry-repositories: "docker.io/serversideup/php,ghcr.io/serversideup/php"
-      tag-prefix: ''
-      release-type: "latest"
-
-  test:
-    needs: [release, setup, base, build]
-    if: always() && needs.setup.result == 'success'
-    uses: ./.github/workflows/service_test-images.yml
-    permissions:
-      contents: read
-      id-token: write
-    with:
-      ref: ${{ needs.release.outputs.tag }}
-
-  # Only images that passed the image tests reach a public registry.
-  publish:
-    needs: [release, build, test]
-    if: needs.build.result == 'success' && needs.test.result == 'success'
-    uses: ./.github/workflows/service_publish-images.yml
+  build-production-images:
     permissions:
       contents: read
       packages: write
       id-token: write
+    needs: get-latest-release
+    uses: ./.github/workflows/service_docker-build-and-publish.yml
     with:
-      ref: ${{ needs.release.outputs.tag }}
-    secrets:
-      DOCKER_HUB_USERNAME: ${{ secrets.DOCKER_HUB_USERNAME }}
-      DOCKER_HUB_ACCESS_TOKEN: ${{ secrets.DOCKER_HUB_ACCESS_TOKEN }}
-
-  # Scans what was just published: counts in the run summary, fixable findings as code scanning alerts.
-  scan:
-    needs: [release, publish]
-    if: needs.publish.result == 'success'
-    uses: ./.github/workflows/service_scan-images.yml
-    permissions:
-      actions: read
-      contents: read
-      security-events: write
-
-  report:
-    needs: [release, setup, build, test, publish]
-    if: always() && needs.setup.result == 'success'
-    uses: ./.github/workflows/service_report.yml
-    permissions:
-      contents: read
-    with:
-      matrix: ${{ needs.setup.outputs.matrix }}
+      registry-repositories: ghcr.io/all-out-hell/docker-php
+      tag-prefix: ''
+      release-type: "latest"
+      ref: ${{ needs.get-latest-release.outputs.release_tag }}
+    secrets: inherit
