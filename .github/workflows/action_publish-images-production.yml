@@ -12,11 +12,19 @@ jobs:
     runs-on: ubuntu-24.04
     outputs:
       release_tag: ${{ steps.get_latest_release.outputs.release_tag }}
+    permissions:
+      contents: read
     steps:
       - name: Get Latest Release
         id: get_latest_release
+        env:
+          GH_TOKEN: ${{ github.token }}
         run: |
-          LATEST_TAG=$(curl -s https://api.github.com/repos/${{ github.repository }}/releases/latest | jq -r .tag_name)
+          LATEST_TAG=$(gh release view --repo "${{ github.repository }}" --json tagName --jq .tagName)
+          if [ -z "$LATEST_TAG" ] || [ "$LATEST_TAG" = "null" ]; then
+            echo "Could not determine the latest release tag" 1>&2
+            exit 1
+          fi
           echo "release_tag=${LATEST_TAG}" >> $GITHUB_OUTPUT
 
   build-production-images:
